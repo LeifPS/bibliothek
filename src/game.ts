@@ -125,6 +125,13 @@ export class Game {
       persist(this.save);
     };
     top.append(mapBtn, title, h('div', 'spacer'), this.bmCounter, hint, snd);
+    const lgh = (window as unknown as { LGH?: { oeffnen(): void } }).LGH;
+    if (lgh) {
+      const gear = h('button', 'chip-btn icon', icon(ICONS.gear));
+      gear.title = 'Einstellungen und Spielstand-Code';
+      gear.onclick = () => lgh.oeffnen();
+      top.append(gear);
+    }
     this.tray = h('div', 'tray');
     const found = this.foundIn(this.wing);
     for (const w of def.wanderers) {
