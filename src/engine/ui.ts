@@ -50,7 +50,7 @@ export interface DialogOpts {
 export function dialog(o: DialogOpts): Promise<number> {
   return new Promise((resolve) => {
     sound.play('page');
-    const ov = h('div', 'overlay');
+    const ov = h('div', `overlay ${o.kind === 'story' ? 'low' : ''}`);
     const card = h('div', `card ${o.kind ?? ''}`);
     const read = [o.title, o.question ?? '', ...o.text, o.sig ?? ''].join('. ');
     card.innerHTML = `${o.seal ? `<svg class="seal" viewBox="-50 -50 100 100"><circle r="44" fill="#9b1f2e"/><circle r="36" fill="none" stroke="#c9485a" stroke-width="3"/><g transform="scale(.9)">${o.seal}</g></svg>` : ''}
