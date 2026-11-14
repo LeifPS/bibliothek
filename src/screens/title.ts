@@ -1,4 +1,4 @@
-import { app, h } from '../engine/ui';
+import { app, h, dialog } from '../engine/ui';
 import { defs, starfield, glow, C } from '../engine/svg';
 import { sound } from '../engine/audio';
 
@@ -73,7 +73,10 @@ export function showTitle(hasSave: boolean): Promise<'continue' | 'new'> {
       const fresh = h('button', 'btn ghost', 'Neu beginnen');
       fresh.style.color = '#f6e8c8';
       fresh.style.borderColor = 'rgba(246,232,200,.4)';
-      fresh.onclick = () => { if (confirm('Wirklich von vorne beginnen? Alle Funde werden vergessen.')) go('new'); };
+      fresh.onclick = async () => {
+        const r = await dialog({ title: 'Neu beginnen?', text: ['Alle Funde und Lesezeichen werden vergessen, und die Bücher träumen wieder von vorn.'], buttons: [{ label: 'Lieber nicht', ghost: true }, { label: 'Neu beginnen' }] });
+        if (r === 1) go('new');
+      };
       menu.appendChild(fresh);
     }
     app().appendChild(el);

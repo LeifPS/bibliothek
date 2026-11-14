@@ -172,7 +172,7 @@ const tiles: Builder = (state, check, save) => {
   const o: Order = (state as Order) ?? createOrder(9, randSeed());
   save(o);
   const P = 300;
-  const svg = svgEl('-20 -20 940 940', `<defs>${MAP_ART}<clipPath id="tileclip"><rect width="${P}" height="${P}"/></clipPath></defs><g class="tiles"></g>`);
+  const svg = svgEl('-20 -20 940 940', `<defs>${MAP_ART}<clipPath id="tileclip"><rect width="${P}" height="${P}"/></clipPath></defs><g class="tiles"></g><g class="grid" pointer-events="none" style="transition:opacity 1s">${[1, 2].map((k) => `<path d="M${k * P} 0v${3 * P}M0 ${k * P}h${3 * P}" stroke="#5a3a22" stroke-width="5" stroke-dasharray="14 10"/>`).join('')}<rect width="${3 * P}" height="${3 * P}" fill="none" stroke="#5a3a22" stroke-width="6"/></g>`);
   const tg = svg.querySelector('.tiles')!;
   let sel: number | null = null;
   // one element per piece, positioned at its slot
@@ -181,7 +181,7 @@ const tiles: Builder = (state, check, save) => {
     g.setAttribute('data-piece', String(piece));
     g.style.transition = 'transform .45s cubic-bezier(.3,1.3,.5,1)';
     g.style.cursor = 'pointer';
-    g.innerHTML = `<g clip-path="url(#tileclip)"><use href="#mapart" x="${-(piece % 3) * P}" y="${-Math.floor(piece / 3) * P}"/></g><rect class="edge" width="${P}" height="${P}" fill="none" stroke="#5a3a22" stroke-width="4" stroke-dasharray="12 8"/><rect class="sel" x="6" y="6" width="${P - 12}" height="${P - 12}" fill="none" stroke="${C.gold}" stroke-width="10" opacity="0"/>`;
+    g.innerHTML = `<g clip-path="url(#tileclip)"><use href="#mapart" x="${-(piece % 3) * P}" y="${-Math.floor(piece / 3) * P}"/></g><rect class="sel" x="6" y="6" width="${P - 12}" height="${P - 12}" fill="none" stroke="${C.gold}" stroke-width="10" opacity="0"/>`;
     tg.appendChild(g);
     return g;
   });
@@ -199,7 +199,7 @@ const tiles: Builder = (state, check, save) => {
     else { swap(o, sel, slot); sel = null; sound.play('page'); }
     place();
     if (orderSolved(o)) {
-      svg.querySelectorAll('.edge').forEach((r) => r.setAttribute('opacity', '0'));
+      svg.querySelector('.grid')!.setAttribute('opacity', '0');
       const route = svg.querySelector('.route-gold') as SVGPathElement;
       route.style.transition = 'stroke-dashoffset 2s ease-in-out';
       requestAnimationFrame(() => { route.style.strokeDashoffset = '0'; });
@@ -228,16 +228,16 @@ const rings: Builder = (state, check, save) => {
   const ringSvg = RADII.map(([a, b], i) => {
     const stars = CAT_STARS.map((p, k) => ({ p, k })).filter(({ p }) => ringOf(p) === i)
       .map(({ p, k }) => `<g transform="translate(${p[0]} ${p[1]})"><circle r="26" fill="url(#g-glow)"/><circle r="${k % 3 ? 7 : 9}" fill="#fff8e0"/></g>`).join('');
-    const moon = `<g transform="translate(0 ${-(a + b) / 2})"><circle r="16" fill="#f6e8c8"/><circle r="16" cx="8" cy="-4" fill="#1b1d4a"/></g>`;
+    const moon = `<g transform="translate(0 ${-b + 18})"><path d="M0 -14l12 20h-24z" fill="${C.gold}" stroke="#fff3c4" stroke-width="2"/></g>`;
     let dots = '';
     for (let k = 0; k < 40; k++) { const ang = (k / 40) * Math.PI * 2; const rr = a + 10 + ((k * 37) % Math.max(1, b - a - 20)); dots += `<circle cx="${(Math.cos(ang) * rr).toFixed(0)}" cy="${(Math.sin(ang) * rr).toFixed(0)}" r="1.6" fill="#c9d6ff" opacity=".5"/>`; }
     return `<g data-r="${i}" style="cursor:pointer"><g class="rot" style="transition:transform .5s cubic-bezier(.3,1.4,.5,1);transform:rotate(${r.offsets[i] * (360 / RING_STEPS)}deg)">
       <path d="${annulus(a, b)}" fill="${['#1b1d4a', '#202462', '#252a78'][i]}" stroke="#4a4f9e" stroke-width="3"/>${dots}${moon}${stars}</g></g>`;
   }).join('');
-  const svg = svgEl('-500 -500 1000 1000', `<circle r="480" fill="#0d0f2e" stroke="${C.gold}" stroke-width="8"/>${ringSvg}
+  const svg = svgEl('-560 -560 1120 1120', `<circle r="480" fill="#0d0f2e" stroke="${C.gold}" stroke-width="8"/>${ringSvg}
     <g class="lines" opacity="0" style="transition:opacity 1.5s">${CAT_LINES.map(([a, b]) => `<line x1="${CAT_STARS[a][0]}" y1="${CAT_STARS[a][1]}" x2="${CAT_STARS[b][0]}" y2="${CAT_STARS[b][1]}" stroke="#ffe9a8" stroke-width="4" filter="url(#f-glow)"/>`).join('')}</g>
-    <path d="M0 -492l-16 -28h32z" fill="${C.gold}"/>
-    <g transform="translate(330 -400) scale(.22)" opacity=".75"><circle r="300" fill="#0d0f2e" stroke="${C.gold}" stroke-width="10"/>${CAT_LINES.map(([a, b]) => `<line x1="${CAT_STARS[a][0]}" y1="${CAT_STARS[a][1]}" x2="${CAT_STARS[b][0]}" y2="${CAT_STARS[b][1]}" stroke="#ffe9a8" stroke-width="12"/>`).join('')}</g>`);
+    <path d="M0 -478l-18 -34h36z" fill="${C.gold}" stroke="#fff3c4" stroke-width="2"/>
+    <g transform="translate(470 -470) scale(.2)" opacity=".85"><circle r="300" fill="#0d0f2e" stroke="${C.gold}" stroke-width="10"/>${CAT_LINES.map(([a, b]) => `<line x1="${CAT_STARS[a][0]}" y1="${CAT_STARS[a][1]}" x2="${CAT_STARS[b][0]}" y2="${CAT_STARS[b][1]}" stroke="#ffe9a8" stroke-width="12"/>`).join('')}</g>`);
   svg.addEventListener('click', (e) => {
     const p = svgPoint(svg, e as PointerEvent);
     const i = RADII.findIndex(([a, b]) => Math.hypot(p.x, p.y) >= a && Math.hypot(p.x, p.y) < b);

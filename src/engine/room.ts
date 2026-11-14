@@ -21,8 +21,8 @@ const HIT = (r: number) => `<circle r="${r}" fill="#000" fill-opacity="0.001"/>`
 export class Room {
   el: HTMLDivElement;
   svg!: SVGSVGElement;
-  private far!: SVGGElement;
-  private fore!: SVGGElement;
+  private layers: SVGSVGElement[] = [];
+  private applied = NaN;
   cam = 0;
   private camTarget = 0;
   scale = 1;
@@ -71,12 +71,12 @@ export class Room {
         <path class="glint" d="M30 -34l3 9l9 3l-9 3l-3 9l-3 -9l-9 -3l9 -3z" fill="#fff8d8" style="animation-delay:${(-Math.random() * 9).toFixed(1)}s;transform-box:fill-box;transform-origin:center"/>
         <path class="wait-arrow" d="M58 -14l14 14l-14 14" stroke="#ffe39a" stroke-width="6" fill="none" stroke-linecap="round"/>
       </g>`).join('');
-    this.el.innerHTML = `<svg class="pano" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${d.width} 1000" preserveAspectRatio="xMinYMin meet">${defs()}
-      <g class="far">${d.far}</g><g class="main">${d.main}${books}${oddities}${items}${spot}${wanderers}</g>
-      <g class="over">${d.over ?? ''}</g><g class="fore">${d.fore ?? ''}</g></svg><div class="vignette"></div>`;
-    this.svg = this.el.querySelector('svg')!;
-    this.far = this.svg.querySelector('.far')!;
-    this.fore = this.svg.querySelector('.fore')!;
+    const svgOpen = (cls: string) => `<svg class="pano ${cls}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${d.width} 1000" preserveAspectRatio="xMinYMin meet">`;
+    this.el.innerHTML = `${svgOpen('far')}${defs()}<g>${d.far}</g></svg>
+      ${svgOpen('main')}${defs()}<g class="main">${d.main}${books}${oddities}${items}${spot}${wanderers}</g><g class="over">${d.over ?? ''}</g></svg>
+      ${d.fore ? `${svgOpen('fore')}<g>${d.fore}</g></svg>` : ''}<div class="vignette"></div>`;
+    this.svg = this.el.querySelector('svg.main')!;
+    this.layers = [...this.el.querySelectorAll('svg.pano')] as SVGSVGElement[];
     for (const w of d.wanderers) {
       const book = this.svg.querySelector(`[data-home="${w.id}"]`) as SVGGElement;
       if (found.has(w.id)) { book.classList.add('filled'); continue; }
@@ -88,8 +88,11 @@ export class Room {
   resize() {
     this.scale = innerHeight / 1000;
     this.viewW = innerWidth / this.scale;
-    this.svg.setAttribute('width', String(this.def.width * this.scale));
-    this.svg.setAttribute('height', String(innerHeight));
+    for (const l of this.layers) {
+      l.setAttribute('width', String(this.def.width * this.scale));
+      l.setAttribute('height', String(innerHeight));
+    }
+    this.applied = NaN;
     this.camTarget = this.clamp(this.camTarget);
     this.cam = this.clamp(this.cam);
     this.apply();
@@ -110,9 +113,15 @@ export class Room {
   panTo(x: number) { this.camTarget = this.clamp(x - this.viewW / 2); }
 
   private apply() {
-    this.svg.style.transform = `translate3d(${(-this.cam * this.scale).toFixed(2)}px,0,0)`;
-    this.far.setAttribute('transform', `translate(${(this.cam * 0.35).toFixed(1)} 0)`);
-    this.fore.setAttribute('transform', `translate(${(-this.cam * 0.3).toFixed(1)} 0)`);
+    if (Math.abs(this.cam - this.applied) < 0.05) return;
+    this.applied = this.cam;
+    const px = this.cam * this.scale;
+    // far layer drifts slower, foreground faster: all compositor-only transforms
+    const factors: Record<string, number> = { far: 0.65, main: 1, fore: 1.3 };
+    for (const l of this.layers) {
+      const k = factors[l.classList[1]] ?? 1;
+      l.style.transform = `translate3d(${(-px * k).toFixed(2)}px,0,0)`;
+    }
   }
 
   private toScene(cx: number, cy: number) {

@@ -21,6 +21,7 @@ button { font-family: var(--sans); cursor: pointer; }
 .room { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: grab; background: #0a0716; }
 .room.dragging { cursor: grabbing; }
 .room svg.pano { position: absolute; left: 0; top: 0; overflow: visible; will-change: transform; }
+.room svg.far, .room svg.fore { pointer-events: none; }
 .room .vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(5, 3, 15, .7) 100%); }
 .room .over, .room .fore { pointer-events: none; }
 .room [data-hit] { cursor: pointer; }
