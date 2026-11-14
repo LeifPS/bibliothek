@@ -240,9 +240,13 @@ export class Room {
     return false;
   }
 
+  private dead = false;
+
   ring(x: number, y: number) {
+    if (this.dead) return;
     for (let k = 0; k < 3; k++)
       setTimeout(() => {
+        if (this.dead) return;
         for (let i = 0; i < 28; i++) {
           const a = (i / 28) * Math.PI * 2;
           this.fx.add({ x: x + Math.cos(a) * 80, y: y + Math.sin(a) * 80, vx: -Math.cos(a) * 60, vy: -Math.sin(a) * 60, max: 0.9, size: 7, color: '#ffe39a' });
@@ -256,7 +260,10 @@ export class Room {
   }
 
   update(dt: number) {
-    if (!this.dragging) this.cam += (this.camTarget - this.cam) * Math.min(1, dt * 5);
+    if (!this.dragging) {
+      this.cam += (this.camTarget - this.cam) * Math.min(1, dt * 5);
+      if (Math.abs(this.camTarget - this.cam) < 0.5) this.cam = this.camTarget;
+    }
     this.apply();
     this.waitingDir = 0;
     if (!this.travelling) return;
@@ -288,5 +295,5 @@ export class Room {
     }
   }
 
-  destroy() { this.el.remove(); }
+  destroy() { this.dead = true; this.el.remove(); }
 }

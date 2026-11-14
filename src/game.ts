@@ -88,6 +88,7 @@ export class Game {
     sound.setMood(def.ambience ?? 'hall');
     this.buildHud();
     if (startCam) setTimeout(() => this.room?.panTo(0), 900);
+    if (!this.save.wingsDone.includes(w)) void this.checkComplete();
 
     if (fromTitle && !this.save.introSeen) {
       await wait(1600);
@@ -201,26 +202,29 @@ export class Game {
   }
 
   private async checkComplete() {
-    const def = this.def();
-    const allHome = def.wanderers.every((w) => this.save.found.includes(`${this.wing}:${w.id}`));
-    const solved = this.save.puzzlesSolved.includes(this.wing);
+    const wing = this.wing; // captured: the player may open the map during the waits below
+    const def = SCENES[wing];
+    const allHome = def.wanderers.every((w) => this.save.found.includes(`${wing}:${w.id}`));
+    const solved = this.save.puzzlesSolved.includes(wing);
     if (allHome && !solved) {
-      setTimeout(() => toast('Alle Wanderer sind zu Hause!', `Aber hier wartet noch ein Rätsel: ${def.puzzle.title}. Es leuchtet ganz leise violett.`, ICONS.lantern), 2600);
+      setTimeout(() => { if (this.wing === wing) toast('Alle Wanderer sind zu Hause!', `Aber hier wartet noch ein Rätsel: ${def.puzzle.title}. Es leuchtet ganz leise violett.`, ICONS.lantern); }, 2600);
       return;
     }
-    if (!allHome || this.save.wingsDone.includes(this.wing) || this.busy) return;
+    if (!allHome || this.save.wingsDone.includes(wing) || this.busy) return;
     this.busy = true;
-    await wait(2200);
-    this.save.wingsDone.push(this.wing);
+    this.save.wingsDone.push(wing);
+    if (wing === 'herz') this.save.finaleDone = true; // saved now, so closing the tab mid-finale never loses the epilogue
     persist(this.save);
-    if (this.wing === 'herz') {
+    await wait(2200);
+    if (this.wing !== wing) { this.busy = false; return; } // left the room: progress is saved, story notes can wait
+    if (wing === 'herz') {
       await playFinale(this);
       this.busy = false;
       await this.showEndScreen();
       return;
     }
     await dialog({ ...def.note, kind: 'note', seal: SEALS[def.seal], sig: '– Oda W.' });
-    const next = WINGS[WINGS.indexOf(this.wing) + 1];
+    const next = WINGS[WINGS.indexOf(wing) + 1];
     const choice = await dialog({
       title: 'Eine Tür hat sich geöffnet',
       text: [`Der Weg zu <b>${SCENES[next].title}</b> ist frei.`],

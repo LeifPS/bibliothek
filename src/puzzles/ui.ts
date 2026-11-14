@@ -39,8 +39,8 @@ export function openPuzzle(kind: PuzzleKind, o: PuzzleOpts) {
   const board = BUILDERS[kind](keep?.state, check, (st) => saved.set(kind, { state: st, hintUsed }));
   if (board.wide) boardWrap.classList.add('wide');
   boardWrap.appendChild(board.el);
-  back.onclick = () => { sound.play('click'); saved.set(kind, { state: saved.get(kind)?.state ?? keep?.state, hintUsed }); root.remove(); o.onClose?.(); };
-  hintBtn.onclick = () => { hintUsed = true; const s = saved.get(kind); if (s) s.hintUsed = true; sound.play('hint'); board.hint(); };
+  back.onclick = () => { if (done) return; sound.play('click'); saved.set(kind, { state: saved.get(kind)?.state ?? keep?.state, hintUsed }); root.remove(); o.onClose?.(); };
+  hintBtn.onclick = () => { if (done) return; hintUsed = true; const s = saved.get(kind); if (s) s.hintUsed = true; sound.play('hint'); board.hint(); };
   app().appendChild(root);
 }
 

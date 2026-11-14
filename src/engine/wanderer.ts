@@ -1,4 +1,6 @@
 export const EDGE_MARGIN = 80;
+/** home counts as visible a bit before the waiting margin, so edge homes are always reachable */
+export const HOME_MARGIN = 30;
 export const SPEED = 340; // scene units per second
 export const FLY_HEIGHT = 420;
 
@@ -25,7 +27,7 @@ export function stepWanderer(w: Wanderer, view: ViewRange, dt: number): 'idle' |
   if (w.state === 'idle') return 'idle';
   if (w.state === 'home') return 'home';
   const lo = view.x0 + EDGE_MARGIN, hi = Math.max(lo, view.x1 - EDGE_MARGIN);
-  const homeVisible = w.home.x >= lo && w.home.x <= hi;
+  const homeVisible = w.home.x >= view.x0 + HOME_MARGIN && w.home.x <= view.x1 - HOME_MARGIN;
   const tx = homeVisible ? w.home.x : Math.min(hi, Math.max(lo, w.home.x));
   const ty = homeVisible ? w.home.y : FLY_HEIGHT;
   const dx = tx - w.x, dy = ty - w.y;

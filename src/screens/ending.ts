@@ -1,6 +1,5 @@
 import type { Game } from '../game';
 import { wait } from '../game';
-import { persist } from '../state';
 import { STORY } from '../content/story';
 import { app, h, dialog } from '../engine/ui';
 import { defs, glow, starfield, C, bookcase } from '../engine/svg';
@@ -37,8 +36,6 @@ export async function playFinale(game: Game) {
   (g.firstElementChild as SVGGElement).style.transform = 'translateY(-60px) scale(1)';
   await wait(2600);
   for (const d of STORY.finale) await dialog({ ...d, kind: 'story' });
-  game.save.finaleDone = true;
-  persist(game.save);
 }
 
 export async function showEnd(game: Game): Promise<'epilogue' | 'map'> {

@@ -1,4 +1,4 @@
-import { canSpeak, speak, stopSpeaking } from './speech';
+import { canSpeak, speak, stopSpeaking, onVoices } from './speech';
 import { sound } from './audio';
 import { defs } from './svg';
 
@@ -57,11 +57,11 @@ export function dialog(o: DialogOpts): Promise<number> {
       <h2>${o.title}</h2>${o.question ? `<div class="question">${o.question}</div>` : ''}
       ${o.text.map((t) => `<p>${t}</p>`).join('')}${o.sig ? `<p class="sig">${o.sig}</p>` : ''}${o.extraHtml ?? ''}`;
     const actions = h('div', 'actions');
-    if (canSpeak()) {
-      const rb = h('button', 'btn read', 'Vorlesen');
-      rb.onclick = () => speak(read.replace(/<[^>]+>/g, ''));
-      actions.appendChild(rb);
-    }
+    const rb = h('button', 'btn read', 'Vorlesen');
+    rb.onclick = () => speak(read.replace(/<[^>]+>/g, ''));
+    rb.hidden = !canSpeak();
+    onVoices(() => { rb.hidden = !canSpeak(); });
+    actions.appendChild(rb);
     (o.buttons ?? [{ label: 'Weiter' }]).forEach((b, i) => {
       const btn = h('button', `btn ${b.ghost ? 'ghost' : ''}`, b.label);
       btn.onclick = () => {

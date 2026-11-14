@@ -34,3 +34,11 @@ describe('wanderer guiding', () => {
     expect(w.x).toBeLessThanOrEqual(1500);
   });
 });
+
+describe('review fixes', () => {
+  it('arrives when home sits at the room edge and the eased camera never quite reaches its max', () => {
+    const w = createWanderer({ x: 2500, y: 500 }, { x: 3520, y: 430 });
+    w.state = 'travel';
+    expect(run(w, { x0: 2160 - 1e-9, x1: 3600 - 1e-9 }, 20)).toBe('home');
+  });
+});

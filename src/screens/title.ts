@@ -55,7 +55,10 @@ export function showTitle(hasSave: boolean): Promise<'continue' | 'new'> {
       <div class="logo"><h1>Die Bibliothek der<br>träumenden Bücher</h1><p>Innen ist sie größer als außen.</p></div>
       <div class="menu"></div><div class="whiteout"></div>`);
     const menu = el.querySelector('.menu')!;
+    let going = false;
     const go = (mode: 'continue' | 'new') => {
+      if (going) return;
+      going = true;
       sound.unlock();
       sound.play('door');
       el.classList.add('entering');
