@@ -1,5 +1,7 @@
 {
   "name": "bibliothek",
   "compatibility_date": "2026-11-01",
+  // wrangler runs this before every deploy, so dist/ always exists (also on Cloudflare's builder)
+  "build": { "command": "npm run build" },
   "assets": { "directory": "./dist" }
 }
